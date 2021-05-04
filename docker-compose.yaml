@@ -1,0 +1,10 @@
+version: "3.3"
+services:
+  hangang:
+    container_name: hangang
+    image: hangang
+    volumes:
+      - ./app:/app
+      # - /home/ubuntu/.aws/credentials:/root/.aws/credentials
+      - ./.aws/credentials:/root/.aws/credentials
+    command: sh -c "tail -f /dev/null"
