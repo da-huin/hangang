@@ -1,7 +1,11 @@
 class Balance():
-    def __init__(self, balance):
+    def __init__(self, balance=0, units=0):
         self._balance = balance
+        self._units = units
 
+    def __str__(self):
+        return str(f'Blance: {self._balance}, Units: {self._units}')
+    
     @property
     def balance(self):
         self._balance
@@ -11,16 +15,23 @@ class Balance():
         return self._balance
 
     def sub(self, amount):
-        if self._balance < 0:
-            raise ValueError('The subtracted balance is less than 0.')
         self._balance -= amount
         return self._balance
     
-    def sub_by_rate(self, rate):
+    def get_balance_by_rate(self, rate):
+
         if rate >= 1:
             raise ValueError('rate is bigger than 1')
             
-        amount = self._balance * rate
-        self.sub(amount)
+        amount = int(self._balance * rate)
 
         return amount
+
+    def add_units(self, units):
+        self._units += units
+        return self._units
+
+    def sub_units(self, units):
+        self._units -= units
+
+        return self._units

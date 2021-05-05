@@ -62,42 +62,39 @@ class Line():
 
 
 class ModelProperty():
-    rotation = {
-        'initialization': {
-            'buy_rate': 0.97,
-            'command_buy_balance_rate': 0.30
-        },
-
-        'buy': {
-            'sell_rate': 1.03,
-            'additional_buy_rate': 0.92,
-            'additional_buy_balance_rate': 0.15
-        }
-    }
+    def __init__(self, test):
+        if test:
+            self.rotation = {
+                'initialization': {
+                    'buy_rate': 1,
+                    'command_buy_balance_rate': 0.50
+                },
+                'buy': {
+                    'sell_rate': 1.03,
+                    'additional_buy_rate': 0.97,
+                    'additional_buy_balance_rate': 0.15
+                }
+            }
+        else:
+            self.rotation = {
+                'initialization': {
+                    'buy_rate': 0.97,
+                    'command_buy_balance_rate': 0.30
+                },
+                'buy': {
+                    'sell_rate': 1.03,
+                    'additional_buy_rate': 0.92,
+                    'additional_buy_balance_rate': 0.15
+                },
+            }
 
 
 class WaveModel():
-    def __init__(self, order_currency):
-        """
-        - Line 구조체 안에 Point라는 인스턴스가 있다.
-        - Point 인스턴스는 모델이 새로운 데이터를 받았을 때, 데이터를 확인하고 타입에 따라 그에 맞는 행동을 한다.
-        - rotation 함수에서 Line 구조체를 순환하면서 Point를 확인한다.
-
-        Rule
-        - 가장 처음에 Point 인스턴스를 생성하는데 kind는 initalization 으로 하고 구매할 수 있는 가격(bid)을 입력한다.
-            - 새로운 데이터가 들어왔을 때 property의 initalization.buy_rate 만큼의 가격이 되면 
-                initalization.command_buy_balance_rate 만큼 구매 명령을 보낸다.
-        - 구매가 완료되면 Point를 생성하는데 kind는 buy로 하고 구매 가격을 price에 넣고 수량을 넣는다.
-            - 구매 가격 x 수량으로 KRW를 구할 수 있다.
-            - Point가 buy인 것은 두 가지 규칙을 따른다.
-                1. property의 구매 가격을 기준으로 buy.sell_rate 만큼의 가격이 되었을 때 판매한다.
-                2. property의 구매 가격을 기준으로 buy.additional_buy_rate 만큼의 가격이 되었을 때 
-                    buy.additional_buy_balance_rate 만큼 추가구매한다. 이후에는 더이상 추가구매하지 않는다.
-            - 위의 경우 Point가 여러개가 될 수 있는 경우는 두번째이다.                 
-        """
+    def __init__(self, order_currency, test):
         self._line = Line()
         self._initalized = False
         self._order_currency = order_currency
+        self._property = ModelProperty(test)
 
     @property
     def line(self):
@@ -105,7 +102,7 @@ class WaveModel():
 
     def update(self, kind, data):
 
-        logging.info(f'[WAVEMODEL UPDATE] 라인 길이: {len(self.line.points)}')
+        logging.debug(f'[WAVEMODEL UPDATE] 라인 길이: {len(self.line.points)}')
         commands = self.rotation(kind, data)
         if kind == 'orderbook':
             ask = data['ask']
@@ -115,7 +112,7 @@ class WaveModel():
 
                 self.line.insert(Point(kind=PointType.INITALIZATiON, ask=ask))
                 self._initalized = True
-                logging.info(
+                logging.debug(
                     '[WAVEMODEL UPDATE] 추가된 포인트: INITALIZATiON')
         else:
             raise ValueError(f'invalid kind {kind}')
@@ -124,8 +121,8 @@ class WaveModel():
 
     def event(self, kind, data):
 
-        logging.info(f'[WAVEMODEL EVENT] 타입: {kind}')
-        logging.info(f'[WAVEMODEL EVENT] 데이터: {data}')
+        logging.debug(f'[WAVEMODEL EVENT] 타입: {kind}')
+        logging.debug(f'[WAVEMODEL EVENT] 데이터: {data}')
 
         if kind == 'transaction':
             if data['order']['kind'] == 'buy':
@@ -133,10 +130,11 @@ class WaveModel():
                     kind=PointType.TRANSACTION_BUY, price=data['order']['price'], units=data['order']['units'], additional_bought=False))
 
             elif data['order']['kind'] == 'sell':
-                self.line.insert(Point(kind=PointType.INITALIZATiON, ask=data['order']['ask']))
+                if len(self._line.points) == 0:
+                    self.line.insert(Point(kind=PointType.INITALIZATiON, ask=data['order']['ask']))
             else:
                 pass
-        elif kind == 'command_fail':
+        elif kind == 'command_failed':
             command_kind = data['command_kind']
             code = data['code']
             if command_kind == 'buy' and code == -1:
@@ -151,22 +149,24 @@ class WaveModel():
         if kind == 'orderbook':
             bid = data['bid']
             ask = data['ask']
-            logging.info(f'[WAVEMODEL ROTATION] ask: {ask}, bid: {bid}')
+            
+            logging.debug(f'[WAVEMODEL ROTATION] ask: {ask}, bid: {bid}')
             commands = []
-            logging.info(f'[WAVEMODEL ROTATION] Line rotation start')
+            logging.debug(f'[WAVEMODEL ROTATION] Line rotation start')
             for key, point in self.line.points.items():
                 if not point.is_on():
                     continue
 
-                logging.info(f'[WAVEMODEL ROTATION] kind: {point.kind}')
+                logging.debug(f'[WAVEMODEL ROTATION] kind: {point.kind}')
                 if point.kind == PointType.INITALIZATiON:
-                    buy_target = int(point.ask * \
-                        ModelProperty.rotation['initialization']['buy_rate'])
-                    if ask > buy_target:
-                        logging.info(
-                            f'[WAVEMODEL ROTATION][{point.kind}] ask({ask})가 아직 구매 목표({buy_target})까지의 가격이 되지 않았습니다.')
-                        continue
-                    balance_rate = ModelProperty.rotation['initialization']['command_buy_balance_rate']
+
+                    # buy_target = int(point.ask * \
+                    #     self._property.rotation['initialization']['buy_rate'])
+                    # if ask > buy_target:
+                    #     logging.info(
+                    #         f'[WAVEMODEL ROTATION][{point.kind}] ask({ask})가 아직 구매 목표({buy_target})까지의 가격이 되지 않았습니다.')
+                    #     continue
+                    balance_rate = self._property.rotation['initialization']['command_buy_balance_rate']
                     command = {
                         'kind': 'buy',
                         'rate': balance_rate,
@@ -175,17 +175,17 @@ class WaveModel():
                     commands.append(command)
                     point.off()
 
-                    logging.info(
+                    logging.debug(
                         f'[WAVEMODEL ROTATION][{point.kind}] 명령어 목록에 balance_rate({balance_rate}) 만큼 구매를 요청했습니다.')
 
                 elif point.kind == PointType.TRANSACTION_BUY:
 
                     sell_target = int(point.price *
-                                ModelProperty.rotation['buy']['sell_rate'])
+                                self._property.rotation['buy']['sell_rate'])
                     additional_buy_target = int(point.price *
-                                            ModelProperty.rotation['buy']['additional_buy_rate'])
+                                            self._property.rotation['buy']['additional_buy_rate'])
                     if bid > sell_target:
-                        logging.info(
+                        logging.debug(
                             f'[WAVEMODEL ROTATION][{point.kind}] bid({bid})가 판매 목표({sell_target})에 도달했습니다.')
                         command = {
                             'kind': 'sell',
@@ -199,14 +199,14 @@ class WaveModel():
 
                         point.off()
 
-                        logging.info(
+                        logging.debug(
                             f'[WAVEMODEL ROTATION][{point.kind}] 명령어 목록에 가지고 있던 {point.units} 만큼 판매를 요청했습니다.')
 
                     elif (ask < additional_buy_target) and not point.additional_bought:
-                        logging.info(
+                        logging.debug(
                             f'[WAVEMODEL ROTATION][{point.kind}] ask({ask})가 추가 구매 목표({additional_buy_target})에 도달했습니다.')
 
-                        additional_buy_balance_rate = ModelProperty.rotation[
+                        additional_buy_balance_rate = self._property.rotation[
                             'buy']['additional_buy_balance_rate']
                         command = {
                             'kind': 'buy',
@@ -217,11 +217,11 @@ class WaveModel():
                         commands.append(command)
                         point.additional_bought = True
 
-                        point.off()
-                        logging.info(
+                        # point.off()
+                        logging.debug(
                             f'[WAVEMODEL ROTATION][{point.kind}] 명령어 목록에 {additional_buy_balance_rate} 만큼 구매를 요청했습니다.')
                     else:
-                        logging.info(f'[WAVEMODEL ROTATION][{point.kind}] 판매 목표({bid}/{sell_target}) 또는 추가 구매 목표({ask}/{additional_buy_target}) 에 도달하지 않았기 때문에 아무 행동도 하지 않았습니다.')
+                        logging.debug(f'[WAVEMODEL ROTATION][{point.kind}] 판매 목표({bid}/{sell_target}) 또는 추가 구매 목표({ask}/{additional_buy_target}) 에 도달하지 않았기 때문에 아무 행동도 하지 않았습니다.')
                 else:
                     raise ValueError(f'invalid kind {point.kind}')
 

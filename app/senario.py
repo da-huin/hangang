@@ -1,8 +1,10 @@
 import uuid
+from exchange import bithumb
 
 
 class Senario():
     def __init__(self, name, order_currency):
+        self._bithumb = bithumb.Bithumb(order_currency)
         self._name = name
         self._order_currency = order_currency
 
@@ -49,13 +51,31 @@ class Senario():
                         'bid': 5890
                     }])
                 }
-
+            },
+            '30m-backtest': {
+                order_currency: {
+                    'get_orderbook': self.get_candlestick_iter('30m')
+                }
+            },
+            '24h-backtest': {
+                order_currency: {
+                    'get_orderbook': self.get_candlestick_iter('24h')
+                }                
             }
-
         }
 
+    def get_candlestick_iter(self, interval):
+        return iter([{
+            'ask': item['avg_price'] + 10,
+            'bid': item['avg_price'] - 10,
+            'date': item['date']
+        } for item in self._bithumb.get_candlestick_current_interval(interval)])
+
     def get_orderbook(self):
-        return next(self._senario[self._name][self._order_currency]['get_orderbook'])
+        if self._name == 'sample':
+            return self._bithumb.get_orderbook()
+        else:
+            return next(self._senario[self._name][self._order_currency]['get_orderbook'])
 
     def trade_market_buy(self, units):
         return str(uuid.uuid1())

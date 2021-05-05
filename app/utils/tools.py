@@ -8,3 +8,6 @@ def get_units(money, price):
             break
 
     return float(units_add_str[:break_point + 1])
+
+def get_krw(units, price):
+    return int(units * price)
