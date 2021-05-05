@@ -1,4 +1,4 @@
-class TemplateModel():
+class CMOModel():
     def __init__(self, order_currency, test):
         self._order_currency = order_currency
         self._test = test

@@ -75,7 +75,7 @@ class Hangang():
             logging.debug(f'[APP][ROUTINE] 모델을 업데이트 하는 중입니다.')
             commands = self.model.update('orderbook', orderbook)
 
-            orders = self.process_commands(commands)['orders']
+            orders = self.process_commands(commands, orderbook)['orders']
             events = self.process_orders(orders)['events']
 
             for event in events:
@@ -112,7 +112,7 @@ class Hangang():
 
         return result
 
-    def process_commands(self, commands):
+    def process_commands(self, commands, orderbook):
         result = {
             'orders': {}
         }
@@ -136,11 +136,10 @@ class Hangang():
                     logging.debug(
                         f'[APP][COMMAND][{kind}] 요구한 가격이 {minium_price}원 보다 적기 떄문에 취소되었습니다.')
                     self.model.event('command_failed', {
-                        'command_kind': 'buy',
                         'code': -1
                     })
                 else:
-                    units = tools.get_units(amount, command['ask'])
+                    units = tools.get_units(amount, orderbook['ask'])
                     if not self.args.test:
                         logging.debug(f'[APP] 빗썸에 구매 요청을 보내는 중입니다.')
                         order_id = self._bithumb.trade_market_buy(units)
@@ -155,7 +154,7 @@ class Hangang():
                         'order_id': order_id,
                         'units': units,
                         'kind': 'buy',
-                        'price': command['ask'],
+                        'price': orderbook['ask'],
                         'message': command['message']
                     }
 
@@ -172,17 +171,16 @@ class Hangang():
                     order_id = self._senario.trade_market_sell(
                         units)
 
-                self.balance.add(tools.get_krw(units, command['bid']))
+                self.balance.add(tools.get_krw(units, orderbook['bid']))
                 self.balance.sub_units(units)
 
                 result['orders'][order_id] = {
                     'order_id': order_id,
                     'units': units,
                     'kind': 'sell',
-                    'bid': command['bid'],
-                    'ask': command['ask'],
+                    'price': orderbook['bid'],
+                    'ask': orderbook['ask'],
                     'message': command['message']
-
                 }
             else:
                 raise ValueError(f'invalid command {command}')

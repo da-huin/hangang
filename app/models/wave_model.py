@@ -73,7 +73,7 @@ class ModelProperty():
                     'sell_rate': 1.03,
                     'additional_buy_rate': 0.92,
                     'additional_buy_balance_rate': 0.50,
-                    'loss_cut_rate': 0.85
+                    'loss_cut_rate': 0.70
                 }
             }
         else:
@@ -133,13 +133,12 @@ class WaveModel():
 
             elif data['order']['kind'] == 'sell':
                 if len(self._line.points) == 0:
-                    self.line.insert(Point(kind=PointType.INITALIZATiON, ask=data['order']['ask']))
+                    self.line.insert(Point(kind=PointType.INITALIZATiON, ask=data['order']['price']))
             else:
                 pass
         elif kind == 'command_failed':
-            command_kind = data['command_kind']
             code = data['code']
-            if command_kind == 'buy' and code == -1:
+            if code == -1:
                 pass
             else:
                 pass
@@ -172,7 +171,7 @@ class WaveModel():
                     command = {
                         'kind': 'buy',
                         'rate': balance_rate,
-                        'ask': ask,
+                        # 'ask': ask,
                         'message': 'buy'
                     }
                     commands.append(command)
@@ -195,11 +194,10 @@ class WaveModel():
                         command = {
                             'kind': 'sell',
                             'units': point.units,
-                            'bid': bid,
-                            # 정보제공용 
-                            'ask': ask,
+                            # 'bid': bid,
+                            # # 정보제공용 
+                            # 'ask': ask,
                             'message': 'sell'
-
                         }
                         commands.append(command)
 
