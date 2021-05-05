@@ -61,7 +61,17 @@ class Senario():
                 order_currency: {
                     'get_orderbook': self.get_candlestick_iter('24h')
                 }                
-            }
+            },
+            '3m-backtest': {
+                order_currency: {
+                    'get_orderbook': self.get_candlestick_iter('3m')
+                }                
+            },
+            '10m-backtest': {
+                order_currency: {
+                    'get_orderbook': self.get_candlestick_iter('10m')
+                }                
+            }                     
         }
 
     def get_candlestick_iter(self, interval):

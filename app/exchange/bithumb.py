@@ -118,7 +118,7 @@ class Bithumb():
         data = []
         for mtimestamp, start_price, end_price, high_price, low_price, volume in response['data']:
             date = datetime.datetime.fromtimestamp(int(mtimestamp)/1000)
-            avg_price = int((int(high_price) + int(low_price)) / 2)
+            avg_price = float((float(high_price) + float(low_price)) / 2)
             data.append({
                 'avg_price': avg_price,
                 'date': date

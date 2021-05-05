@@ -4,11 +4,15 @@ class Balance():
         self._units = units
 
     def __str__(self):
-        return str(f'Blance: {self._balance}, Units: {self._units}')
+        return str(f'Balance: {self._balance}, Units: {self._units}')
     
     @property
     def balance(self):
-        self._balance
+        return self._balance
+    
+    @property
+    def units(self):
+        return self._units
 
     def add(self, amount):
         self._balance += amount

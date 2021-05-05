@@ -1,3 +1,4 @@
+import traceback
 import simple_utils
 import argparse
 from exchange.bithumb import Bithumb
@@ -11,7 +12,7 @@ from utils import tools
 import time
 from senario import Senario
 
-# logging._logger.setLevel(level=logging.logging.WARNING)
+
 
 
 class Hangang():
@@ -47,6 +48,7 @@ class Hangang():
 
     def routine(self):
         index = 0
+        last_orderbook = None
         while True:
             logging.debug(
                 f'[APP][ROUTINE] ==================== {index} ====================')
@@ -58,11 +60,18 @@ class Hangang():
                 orderbook = self._bithumb.get_orderbook()
             else:
                 logging.debug(f'[APP][ROUTINE] 시나리오에서 데이터를 가져오는 중입니다.')
-                orderbook = self._senario.get_orderbook()
+                try:
+                    orderbook = self._senario.get_orderbook()
+                    last_orderbook = orderbook
+                except StopIteration:
+                    logging.info(f'잔고: {self.balance} 총액: {self.balance.balance + self.balance.units * last_orderbook["bid"]}')
+                    break
+                    
             
-            if self.args.test and index % 10 == 0:
-                date = orderbook.get('date', '')
-                logging.info(f'[APP][ROUTINE] orderbook date: {date}.')
+            # if (self.args.test and index % 10 == 0):
+                # date = orderbook.get('date', '')
+            date = orderbook.get('date', '')
+            logging.info(f'[APP][ROUTINE] orderbook date: {date}.')
             logging.debug(f'[APP][ROUTINE] 모델을 업데이트 하는 중입니다.')
             commands = self.model.update('orderbook', orderbook)
 
@@ -77,16 +86,18 @@ class Hangang():
 
             logging.debug('')
 
-
-
             index += 1
 
     def process_orders(self, orders):
         result = {
             'events': []
         }
-
-        ongoing_orders = self._bithumb.private_post_info_orders()
+        
+        if not self.args.test:
+            ongoing_orders = self._bithumb.private_post_info_orders()
+        else:
+            ongoing_orders = []
+            
         for order_id, order in orders.items():
             if order_id not in ongoing_orders:
                 result['events'].append({
@@ -144,7 +155,8 @@ class Hangang():
                         'order_id': order_id,
                         'units': units,
                         'kind': 'buy',
-                        'price': command['ask']
+                        'price': command['ask'],
+                        'message': command['message']
                     }
 
             elif kind == 'sell':
@@ -168,7 +180,9 @@ class Hangang():
                     'units': units,
                     'kind': 'sell',
                     'bid': command['bid'],
-                    'ask': command['ask']                    
+                    'ask': command['ask'],
+                    'message': command['message']
+
                 }
             else:
                 raise ValueError(f'invalid command {command}')
@@ -184,6 +198,7 @@ parser.add_argument('--balance', help='balance', required=True, type=int)
 parser.add_argument('--senario-name', help='senario name',
                     required=False, default='')
 parser.add_argument('--test', action='store_true')
+parser.add_argument('--debug', action='store_true')
 parser.add_argument('--order-currency', help='주문 통화(코인)', required=True)
 parser.add_argument('--wait-seconds', help='대기 시간', default=60, type=float)
 
@@ -200,4 +215,7 @@ print("""
 
 print(args)
 
+
+if args.debug:
+    logging._logger.setLevel(level=logging.logging.DEBUG)
 Hangang(args).main()

@@ -67,12 +67,13 @@ class ModelProperty():
             self.rotation = {
                 'initialization': {
                     'buy_rate': 1,
-                    'command_buy_balance_rate': 0.50
+                    'command_buy_balance_rate': 0.70
                 },
                 'buy': {
                     'sell_rate': 1.03,
-                    'additional_buy_rate': 0.97,
-                    'additional_buy_balance_rate': 0.15
+                    'additional_buy_rate': 0.92,
+                    'additional_buy_balance_rate': 0.50,
+                    'loss_cut_rate': 0.85
                 }
             }
         else:
@@ -88,7 +89,8 @@ class ModelProperty():
                 },
             }
 
-
+# [INFO][2021-05-05 19:18:00] [APP][ORDERS] 잔고: Balance: 143744, Units: 199.30799999999988
+# [INFO][2021-05-05 19:18:00] [APP][ORDERS] events: {'order_id': '2b6e4aaa-ad8b-11eb-ad60-0242ac130002', 'units': 44.161, 'kind': 'sell', 'bid': 1637.5, 'ask': 1657.5, 'message': 'sell'}
 class WaveModel():
     def __init__(self, order_currency, test):
         self._line = Line()
@@ -170,7 +172,8 @@ class WaveModel():
                     command = {
                         'kind': 'buy',
                         'rate': balance_rate,
-                        'ask': ask
+                        'ask': ask,
+                        'message': 'buy'
                     }
                     commands.append(command)
                     point.off()
@@ -184,6 +187,8 @@ class WaveModel():
                                 self._property.rotation['buy']['sell_rate'])
                     additional_buy_target = int(point.price *
                                             self._property.rotation['buy']['additional_buy_rate'])
+
+                    loss_cut_target = int(point.price * self._property.rotation['buy']['loss_cut_rate'])
                     if bid > sell_target:
                         logging.debug(
                             f'[WAVEMODEL ROTATION][{point.kind}] bid({bid})가 판매 목표({sell_target})에 도달했습니다.')
@@ -192,7 +197,8 @@ class WaveModel():
                             'units': point.units,
                             'bid': bid,
                             # 정보제공용 
-                            'ask': ask
+                            'ask': ask,
+                            'message': 'sell'
 
                         }
                         commands.append(command)
@@ -211,7 +217,9 @@ class WaveModel():
                         command = {
                             'kind': 'buy',
                             'rate': additional_buy_balance_rate,
-                            'ask': ask
+                            'ask': ask,
+                            'message': 'additional_buy'
+
                         }
 
                         commands.append(command)
@@ -220,8 +228,23 @@ class WaveModel():
                         # point.off()
                         logging.debug(
                             f'[WAVEMODEL ROTATION][{point.kind}] 명령어 목록에 {additional_buy_balance_rate} 만큼 구매를 요청했습니다.')
+                    elif (ask < loss_cut_target):
+                        logging.debug(
+                            f'[WAVEMODEL ROTATION][{point.kind}] bid({bid})가 손절 목표({loss_cut_target})에 도달했습니다.')                        
+                        command = {
+                            'kind': 'sell',
+                            'units': point.units,
+                            'bid': bid,
+                            # 정보제공용 
+                            'ask': ask,
+                            'message': 'loss cut'
+
+                        }
+                        commands.append(command)
+                        point.off()
+                    
                     else:
-                        logging.debug(f'[WAVEMODEL ROTATION][{point.kind}] 판매 목표({bid}/{sell_target}) 또는 추가 구매 목표({ask}/{additional_buy_target}) 에 도달하지 않았기 때문에 아무 행동도 하지 않았습니다.')
+                        logging.debug(f'[WAVEMODEL ROTATION][{point.kind}] 판매 목표({bid}/{sell_target}) 또는 추가 구매 목표({ask}/{additional_buy_target}) 또는 손절 목표({bid}/{loss_cut_target}) 에 도달하지 않았기 때문에 아무 행동도 하지 않았습니다.')
                 else:
                     raise ValueError(f'invalid kind {point.kind}')
 
