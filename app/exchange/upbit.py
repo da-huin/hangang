@@ -2,7 +2,6 @@ import requests
 import datetime
 import ccxt
 
-
 class Upbit():
     def __init__(self):
         pass
