@@ -96,10 +96,11 @@ class MBithumbCrawler():
         return [mcoins[coin_id] for coin_id in coin_ids]
 
 class BithumbCoinChecker():
-    def __init__(self, test=False, interval = 10):
+    def __init__(self, test=False, interval = 10, retry_count=10):
         logging.info('[BithumbCoinChecker] Ticker Crawler와 MBituhmb Crawler 인스턴스를 생성하는 중입니다.')
         self.ticker_crawler = BithumbTickerCrawler()
         self.mbithumb_crawler = MBithumbCrawler()
+        self.retry_count = retry_count
         
         self.interval = interval
         self.test = test
@@ -157,7 +158,7 @@ class BithumbCoinChecker():
                 logging.info(f'[BithumbCoinChecker][RUN] 삭제된 코인: {deleted_coins}')
                 
                 success = False
-                for i in range(10):
+                for i in range(self.retry_count):
                     try:
                         
                         # 신규 코인이 존재할 경우 procedure 실행
