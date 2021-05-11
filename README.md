@@ -38,6 +38,7 @@
         }
     }
     ```
+```
 1. bash build.sh
 2. bash compose.sh
 3. docker exec -it hangang bash
@@ -48,6 +49,7 @@
 
 
 ### 모델 추가하는 방법
+
 1. models 폴더에서 `template_model.py` 파일을 복제합니다.
 2. `{모델명}_model.py`로 파일 이름을 변경합니다.
 3. `__init__()` 함수는 아래의 매개변수를 입력받습니다.
@@ -58,7 +60,8 @@
     * `data`: kind가 orderbook 이라면 아래의 데이터가 들어옵니다.
         * `ask`: 판매자가 원하는 가격
         * `bid`: 구매자가 원하는 가격
-        * `data`: API로 받은 데이터 원본
+        * `avg`: 평균 가격
+        * `date`: 날짜
 5. `event()` 함수는 아래의 매개변수를 입력받습니다.
     * `kind`: 이벤트 종류입니다.
         * `transaction` data:

@@ -186,7 +186,9 @@ class Hangang():
         return result
 
 
-parser = argparse.ArgumentParser(description='hangang')
+parser = argparse.ArgumentParser(description="""
+Hangang Example:  python3 app.py --model wave --balance 1000000 --senario-name 3m-backtest --test --debug --order-currency BTC --wait-seconds 1
+""")
 # parser.add_argument(
 #     'action', help='The name of the command to be executed', type=str)
 parser.add_argument('--model', help='model name', required=True)
