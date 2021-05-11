@@ -38,6 +38,7 @@ class Upbit:
     #     querystring = {"isDetails":"false"}
     #     response = requests.request("GET", url, params=querystring)
     #     print(response.text)
+    
     def get_market_data(self, item, minute):
         url = "https://api.upbit.com/v1/candles/minutes/" + str(minute)
 

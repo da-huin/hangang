@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 class CMO():
     def __init__(self, order_currency, test):
@@ -40,6 +41,30 @@ class CMO():
         cmo = np.array([np.nan, np.nan, np.nan, np.nan])
 
         return cmo
+
+    def get_cmo_temp(self, data, period):
+
+        data = np.array(data)
+        moving_period_diffs = [[(data[idx+1-period:idx+1][i] -
+                 data[idx+1-period:idx+1][i-1]) for i in range(1, len(data[idx+1-period:idx+1]))] for idx in range(0, len(data))]
+        
+        sum_up = []
+        sum_down = []
+        for period_diffs in moving_period_diffs:
+            ups = [val if val > 0 else 0 for val in period_diffs]
+            sum_up.append(sum(ups))
+            downs = [abs(val) if val < 0 else 0 for val in period_diffs]
+            sum_down.append(sum(downs))
+
+        sum_up = np.array(sum_up)
+        sum_down = np.array(sum_down)
+        
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+        cmo = 100 * ((sum_up - sum_down) / (sum_up + sum_down))
+
+        return cmo
+
 
     def transact(self, cmo, data):
         '''
