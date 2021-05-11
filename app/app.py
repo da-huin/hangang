@@ -13,8 +13,6 @@ import time
 from senario import Senario
 
 
-
-
 class Hangang():
     def __init__(self, args):
         self.args = args

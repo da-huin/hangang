@@ -5,16 +5,20 @@ import requests
 import time
 import boto3
 import json
+import sys
+from utils import config
 
 class Bithumb():
     def __init__(self, order_currency):
         self.order_currency = order_currency
-        self._ssm = aws_glove.client('ssm', region_name='ap-northeast-2')
-        auth = json.loads(self._ssm.get_parameter('/bitcoin/api/bithumb'))
+        
+        # self._ssm = aws_glove.client('ssm', region_name='ap-northeast-2')
+        # auth = json.loads(self._ssm.get_parameter('/bitcoin/api/bithumb'))
+        bithumb = config.get('auth')['bithumb']
 
         self._bithumb = ccxt.bithumb({
-            'apiKey': auth['api_key'],
-            'secret': auth['secret'],
+            'apiKey': bithumb['api_key'],
+            'secret': bithumb['secret'],
             'verbose': False
         })
 

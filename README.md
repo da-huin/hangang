@@ -22,13 +22,30 @@
 
 ### Installing
 
-```
+1. app/config.json 파일 생성하기
+2. 아래의 형태로 작성하기
+    ```
+    {
+        "auth": {
+            "bithumb": {
+                "api_key": "",
+                "secret": ""
+            },
+            "upbit": {
+                "access_key": "",
+                "api_secret_key": ""
+            }
+        }
+    }
+    ```
 1. bash build.sh
 2. bash compose.sh
 3. docker exec -it hangang bash
 4. cd /app
 5. python3 app.py -h
 ```
+
+
 
 ### 모델 추가하는 방법
 1. models 폴더에서 `template_model.py` 파일을 복제합니다.

@@ -96,7 +96,7 @@ class MBithumbCrawler():
         return [mcoins[coin_id] for coin_id in coin_ids]
 
 class BithumbCoinChecker():
-    def __init__(self, test=False, interval = 10, retry_count=10):
+    def __init__(self, test=False, interval=10, retry_count=10):
         logging.info('[BithumbCoinChecker] Ticker Crawler와 MBituhmb Crawler 인스턴스를 생성하는 중입니다.')
         self.ticker_crawler = BithumbTickerCrawler()
         self.mbithumb_crawler = MBithumbCrawler()
