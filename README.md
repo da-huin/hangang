@@ -116,3 +116,9 @@ docker run -it --rm -v ~/.aws/credentials:/root/.aws/credentials -v %cd%/app:/ap
 # linux
 docker run -it --rm -v ~/.aws/credentials:/root/.aws/credentials -v $PWD/app:/app hangang python3 crawler.py --crawler-name bithumb-1m --order-currency BTC,ETH,ETC,XRP,EOS
 ```
+
+
+## crontab 설정방법
+1. mkdir ~/logs
+2. echo $PATH -> crontab에 추가
+3. echo $SHELL -> crontab에 추가
