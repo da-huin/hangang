@@ -185,7 +185,7 @@ class BithumbCoinChecker():
                         time.sleep(sleep_time)
 
                 if not success:
-                    raise Exceptiontion('The request exceeded the limit.')
+                    raise Exception('The request exceeded the limit.')
             else:
                 logging.info(f'[BithumbCoinChecker][RUN] 새로운 코인이나 삭제된 코인이 없습니다.')
 

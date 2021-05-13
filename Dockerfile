@@ -20,5 +20,6 @@ RUN pip3 install simple_utils
 RUN pip3 install aws_glove
 RUN pip3 install numpy
 RUN pip3 install pandas
+RUN pip3 install fastparquet
 
-CMD ["cd /app", "python3 app.py"]
+WORKDIR /app
