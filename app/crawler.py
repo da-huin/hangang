@@ -46,20 +46,25 @@ class Cralwer():
 
     def main(self):
         if self._args.crawler_name == 'bithumb-1m':
-            path = self.bithumb_candlestick_1m(self._args.order_currency)
-            logging.info(f'The crawling is complete. data has been stored in {path}')
+            # path = self.bithumb_candlestick_1m(self._args.order_currency)
+            for order_currency in self._args.order_currency_list:
+                path = self.bithumb_candlestick_1m(order_currency)
+                logging.info(f'The {order_currency} crawling is complete. data has been stored in {path}')
         else:
             raise ValueError(f'invalid crawler name {self._args.crawler_name}')
+        logging.info('All execution is complete.')
 
 parser = argparse.ArgumentParser(description="""Hangang Crawler Example:  python3 crawler.py --crawler-name bithumb-1m --order-currency BTC""")
 # parser.add_argument(
 #     'action', help='The name of the command to be executed', type=str)
 parser.add_argument('--crawler-name', help='availables: bithumb-1m', required=True)
 parser.add_argument('--debug', action='store_true')
-parser.add_argument('--order-currency', help='주문 통화(코인)', required=True)
+parser.add_argument('--order-currency', help='주문 통화(코인), 여러개일 경우 콤마로 구분해주세요.', required=True)
 
 
 args = parser.parse_args()
+args.order_currency_list = [v.strip() for v in args.order_currency.split(',') if v.strip()]
+
 print("""
 ██╗  ██╗ █████╗ ███╗   ██╗ ██████╗  █████╗ ███╗   ██╗ ██████╗      ██████╗██████╗  █████╗ ██╗    ██╗██╗     ███████╗██████╗ 
 ██║  ██║██╔══██╗████╗  ██║██╔════╝ ██╔══██╗████╗  ██║██╔════╝     ██╔════╝██╔══██╗██╔══██╗██║    ██║██║     ██╔════╝██╔══██╗
