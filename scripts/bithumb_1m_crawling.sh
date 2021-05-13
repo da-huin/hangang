@@ -1,0 +1,1 @@
+sudo docker run -it --rm -v ~/.aws/credentials:/root/.aws/credentials -v $PWD/app:/app hangang python3 crawler.py --crawler-name bithumb-1m --order-currency ADA

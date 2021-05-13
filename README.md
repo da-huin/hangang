@@ -110,9 +110,9 @@
 
 ```bash
 # windows
-docker run -it --rm -v ~/.aws/credentials:/root/.aws/credentials -v %cd%/app:/app hangang python3 crawler.py --crawler-name bithumb-1m --order-currency BTC
+docker run -it --rm -v ~/.aws/credentials:/root/.aws/credentials -v %cd%/app:/app hangang python3 crawler.py --crawler-name bithumb-1m --order-currency BTC,ETH,ETC,XRP,EOS
 ```
 ```bash
 # linux
-docker run -it --rm -v ~/.aws/credentials:/root/.aws/credentials -v $pwd/app:/app hangang python3 crawler.py --crawler-name bithumb-1m --order-currency BTC
+docker run -it --rm -v ~/.aws/credentials:/root/.aws/credentials -v $PWD/app:/app hangang python3 crawler.py --crawler-name bithumb-1m --order-currency BTC,ETH,ETC,XRP,EOS
 ```
