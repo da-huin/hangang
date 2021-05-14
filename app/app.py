@@ -1,16 +1,16 @@
 import traceback
 import simple_utils
 import argparse
-from .exchange.bithumb import Bithumb
+from exchange.bithumb import Bithumb
 from simple_utils import simple_logging as logging
 import argparse
 import simple_utils
-from .models import wave_model
-from .models import cmo_model
-from .utils.balance import Balance
-from .utils import tools
+from models import wave_model
+from models import cmo_model
+from utils.balance import Balance
+from utils import tools
 import time
-from .senario import Senario
+from senario import Senario
 
 
 class Hangang():
