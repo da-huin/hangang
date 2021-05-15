@@ -10,7 +10,7 @@ from models import cmo_model
 from utils.balance import Balance
 from utils import tools
 import time
-from senario import Senario
+from scenario import scenario
 
 
 
@@ -25,7 +25,7 @@ class Hangang():
         self._bithumb = Bithumb(self.args.order_currency)
         self.balance = Balance(self.args.balance)
         self.wait_seconds = self.args.wait_seconds
-        self._senario = Senario(self.args.senario_name, self.args.order_currency)
+        self._scenario = scenario(self.args.scenario_name, self.args.order_currency)
         self._model = self._get_model()
 
     @property
@@ -61,7 +61,7 @@ class Hangang():
             else:
                 logging.debug(f'[APP][ROUTINE] 시나리오에서 데이터를 가져오는 중입니다.')
                 try:
-                    orderbook = self._senario.get_orderbook()
+                    orderbook = self._scenario.get_orderbook()
                     last_orderbook = orderbook
                 except StopIteration:
                     logging.info(f'잔고: {self.balance} 총액: {self.balance.balance + self.balance.units * last_orderbook["bid"]}')
@@ -145,7 +145,7 @@ class Hangang():
                         order_id = self._bithumb.trade_market_buy(units)
                     else:
                         logging.debug(f'[APP] 시나리오에 구매 요청을 보내는 중입니다.')
-                        order_id = self._senario.trade_market_buy(units)
+                        order_id = self._scenario.trade_market_buy(units)
 
                     self.balance.sub(amount)
                     self.balance.add_units(units)
@@ -168,7 +168,7 @@ class Hangang():
                         units)
                 else:
                     logging.debug(f'[APP] 시나리오에 판매 요청을 보내는 중입니다.')
-                    order_id = self._senario.trade_market_sell(
+                    order_id = self._scenario.trade_market_sell(
                         units)
 
                 self.balance.add(tools.get_krw(units, orderbook['bid']))
@@ -188,12 +188,18 @@ class Hangang():
         return result
 
 
+<<<<<<< Updated upstream
 parser = argparse.ArgumentParser(description='hangang')
+=======
+parser = argparse.ArgumentParser(description="""
+Hangang Example:  python3 app.py --model wave --balance 1000000 --scenario-name 3m-backtest --test --debug --order-currency BTC --wait-seconds 1
+""")
+>>>>>>> Stashed changes
 # parser.add_argument(
 #     'action', help='The name of the command to be executed', type=str)
 parser.add_argument('--model', help='model name', required=True)
 parser.add_argument('--balance', help='balance', required=True, type=int)
-parser.add_argument('--senario-name', help='senario name',
+parser.add_argument('--scenario-name', help='scenario name',
                     required=False, default='')
 parser.add_argument('--test', action='store_true')
 parser.add_argument('--debug', action='store_true')

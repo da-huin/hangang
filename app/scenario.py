@@ -2,13 +2,13 @@ import uuid
 from exchange import bithumb
 
 
-class Senario():
+class Scenario():
     def __init__(self, name, order_currency):
         self._bithumb = bithumb.Bithumb(order_currency)
         self._name = name
         self._order_currency = order_currency
 
-        self._senario = {
+        self._scenario = {
             'sample': {
                 order_currency: {
                     'get_orderbook': iter([{
@@ -86,7 +86,7 @@ class Senario():
         if self._name == 'sample':
             return self._bithumb.get_orderbook()
         else:
-            return next(self._senario[self._name][self._order_currency]['get_orderbook'])
+            return next(self._scenario[self._name][self._order_currency]['get_orderbook'])
 
     def trade_market_buy(self, units):
         return str(uuid.uuid1())
