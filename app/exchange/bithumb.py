@@ -12,6 +12,13 @@ import sys
 class Bithumb():
     def __init__(self, order_currency):
         self.order_currency = order_currency
+        # 임시
+        with open('./config.json', 'r') as fp:
+            auth = json.loads(fp.read())['auth']['bithumb']
+
+
+        # self._ssm = aws_glove.client('ssm', region_name='ap-northeast-2')
+        # auth = json.loads(self._ssm.get_parameter('/bitcoin/api/bithumb'))
 
         self._ssm = aws_glove.client('ssm', region_name='ap-northeast-2')
         auth = json.loads(self._ssm.get_parameter('/bitcoin/api/bithumb'))
@@ -124,6 +131,11 @@ class Bithumb():
             date = datetime.datetime.fromtimestamp(int(mtimestamp)/1000)
             avg_price = float((float(high_price) + float(low_price)) / 2)
             data.append({
+                'start_price': start_price,
+                'end_price': end_price,
+                'high_price': high_price,
+                'low_price': low_price,
+                'volume': volume,
                 'avg_price': avg_price,
                 'date': date
             })

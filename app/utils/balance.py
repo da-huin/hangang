@@ -24,7 +24,7 @@ class Balance():
     
     def get_balance_by_rate(self, rate):
 
-        if rate >= 1:
+        if rate > 1:
             raise ValueError('rate is bigger than 1')
             
         amount = int(self._balance * rate)
