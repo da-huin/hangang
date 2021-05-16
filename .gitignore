@@ -131,4 +131,4 @@ dmypy.json
 
 
 # config file
-config.json
+# app/config.json

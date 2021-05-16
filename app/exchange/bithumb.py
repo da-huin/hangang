@@ -10,12 +10,21 @@ class Bithumb():
     def __init__(self, order_currency):
         self.order_currency = order_currency
         # 임시
+<<<<<<< HEAD
         with open('./config.json', 'r') as fp:
             auth = json.loads(fp.read())['auth']['bithumb']
 
 
         # self._ssm = aws_glove.client('ssm', region_name='ap-northeast-2')
         # auth = json.loads(self._ssm.get_parameter('/bitcoin/api/bithumb'))
+=======
+        # with open('./config.json', 'r') as fp:
+            # auth = json.loads(fp.read())['auth']['bithumb']
+
+        self._ssm = aws_glove.client('ssm', region_name='ap-northeast-2')
+        auth = json.loads(self._ssm.get_parameter('/bitcoin/api/bithumb'))
+        # auth = config.get('auth')['bithumb']
+>>>>>>> f7d998f668adca757f42a4ec8c740bcbdafc8e90
 
         self._bithumb = ccxt.bithumb({
             'apiKey': auth['api_key'],
