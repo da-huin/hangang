@@ -1,0 +1,12 @@
+{
+    "auth": {
+        "bithumb": {
+            "api_key": "3c49c68f65f06b64ad0e9a991433c876",
+            "secret": "b2ac5ee18dcf2af5c68e0105d41b7fdc"
+        },
+        "upbit": {
+            "access_key": "",
+            "api_secret_key": ""
+        }
+    }
+}

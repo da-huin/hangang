@@ -106,7 +106,7 @@ class BithumbCoinChecker():
         self.test = test
         logging.info(f'[BithumbCoinChecker] 테스트 여부: {self.test}')
         logging.info(f'[BithumbCoinChecker] 요청 간격: {self.interval}')
-        self.senario = {
+        self.scenario = {
             'ids': iter([
                 ['C0245', 'C0124', 'C0246', 'C0364'],
                 ['C0245', 'C0124', 'C0246', 'C0364'],
@@ -123,7 +123,7 @@ class BithumbCoinChecker():
         if not self.test:
             new_ids = self.ticker_crawler.get_coin_ids()
         else:
-            new_ids = next(self.senario['ids'], None)
+            new_ids = next(self.scenario['ids'], None)
         
         return new_ids
 

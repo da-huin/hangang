@@ -22,22 +22,6 @@
 
 ### Installing
 
-1. app/config.json 파일 생성하기
-2. 아래의 형태로 작성하기
-    ```
-    {
-        "auth": {
-            "bithumb": {
-                "api_key": "",
-                "secret": ""
-            },
-            "upbit": {
-                "access_key": "",
-                "api_secret_key": ""
-            }
-        }
-    }
-    ```
 ```
 1. bash build.sh
 2. bash compose.sh
@@ -46,10 +30,7 @@
 5. python3 app.py -h
 ```
 
-
-
 ### 모델 추가하는 방법
-
 1. models 폴더에서 `template_model.py` 파일을 복제합니다.
 2. `{모델명}_model.py`로 파일 이름을 변경합니다.
 3. `__init__()` 함수는 아래의 매개변수를 입력받습니다.
@@ -60,8 +41,7 @@
     * `data`: kind가 orderbook 이라면 아래의 데이터가 들어옵니다.
         * `ask`: 판매자가 원하는 가격
         * `bid`: 구매자가 원하는 가격
-        * `avg`: 평균 가격
-        * `date`: 날짜
+        * `data`: API로 받은 데이터 원본
 5. `event()` 함수는 아래의 매개변수를 입력받습니다.
     * `kind`: 이벤트 종류입니다.
         * `transaction` data:
@@ -104,27 +84,8 @@
         ```
 
 
-## Snipets
+### Temporary TODO
 
-**Run crawler (bithumb-1m)**
-
-```bash
-# windows
-docker run -it --rm -v ~/.aws/credentials:/root/.aws/credentials -v %cd%/app:/app hangang python3 crawler.py --crawler-name bithumb-1m --order-currency BTC,ETH,ETC,XRP,EOS
-```
-```bash
-# linux
-docker run -it --rm -v ~/.aws/credentials:/root/.aws/credentials -v $PWD/app:/app hangang python3 crawler.py --crawler-name bithumb-1m --order-currency BTC,ETH,ETC,XRP,EOS
-```
-
-```bash
-# ubuntu crontab
-0 */6 * * * cd /home/ubuntu/hangang && sudo docker run -i --rm -v ~/.aws/credentials:/root/.aws/credentials -v $PWD/app:/app hangang python3 crawler.py --crawler-name bithumb-1m --order-currency BTC,ETH,ETC,XRP,EOS >> ~/logs/hangang_crawler_bithumb.log 2>&1
-```
-
-=======
-
-## crontab 설정방법
-1. mkdir ~/logs
-2. echo $PATH -> crontab에 추가
-3. echo $SHELL -> crontab에 추가
+1. 리팩토링
+ - 구매, 판매 commands -> 클래스로 바꾸고 command.buy() 와 같은 형식으로 한 줄로 표현이 되도록 한다.
+ - app.py import 경로 경고 확인
