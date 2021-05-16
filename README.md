@@ -82,3 +82,10 @@
             'message': '메세지'
         }
         ```
+
+
+### Temporary TODO
+
+1. 리팩토링
+ - 구매, 판매 commands -> 클래스로 바꾸고 command.buy() 와 같은 형식으로 한 줄로 표현이 되도록 한다.
+ - app.py import 경로 경고 확인

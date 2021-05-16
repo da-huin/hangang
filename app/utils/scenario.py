@@ -51,34 +51,23 @@ class Scenario():
                         'bid': 5890
                     }])
                 }
-            },
-            '30m-backtest': {
-                order_currency: {
-                    'get_orderbook': self.get_candlestick_iter('30m')
-                }
-            },
-            '24h-backtest': {
-                order_currency: {
-                    'get_orderbook': self.get_candlestick_iter('24h')
-                }                
-            },
-            '3m-backtest': {
-                order_currency: {
-                    'get_orderbook': self.get_candlestick_iter('3m')
-                }                
-            },
-            '10m-backtest': {
-                order_currency: {
-                    'get_orderbook': self.get_candlestick_iter('10m')
-                }                
-            }                     
+            }    
         }
 
+        for interval in ['1m', '3m', '5m', '10m', '30m', '1h', '6h', '12h', '24h']:
+
+            self._scenario[f'{interval}'] = {
+                order_currency: {
+                    'get_orderbook': self.get_candlestick_iter(interval)
+                }
+            }
+  
     def get_candlestick_iter(self, interval):
+        
         return iter([{
-            'ask': item['avg_price'] + 10, # The price when we get if we sell the item
-            'bid': item['avg_price'] - 10, # The price when we have to pay the item
-            'avg': item['avg_price'], # Average price
+            'ask': item['avg_price'], # The price when we get if we sell the item
+            'bid': item['avg_price'], # The price when we have to pay the item
+            # 'avg': item['avg_price'], # Average price
             'date': item['date'] # Date. What did you expect?
         } for item in self._bithumb.get_candlestick_current_interval(interval)])
 

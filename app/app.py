@@ -10,7 +10,7 @@ from models import cmo_model
 from utils.balance import Balance
 from utils import tools
 import time
-from scenario import scenario
+from utils.scenario import Scenario
 
 
 
@@ -25,8 +25,9 @@ class Hangang():
         self._bithumb = Bithumb(self.args.order_currency)
         self.balance = Balance(self.args.balance)
         self.wait_seconds = self.args.wait_seconds
-        self._scenario = scenario(self.args.scenario_name, self.args.order_currency)
+        self._scenario = Scenario(self.args.scenario_name, self.args.order_currency)
         self._model = self._get_model()
+        
 
     @property
     def model(self):
@@ -36,7 +37,7 @@ class Hangang():
         if self.args.model == 'wave':
             model = wave_model.WaveModel(order_currency=self.args.order_currency, test=self.args.test)
         elif self.args.model == 'cmo':
-            model = cmo_model.CMOModel(order_currency=self.args.order_currency, test=self.args.test)
+            model = cmo_model.CMOModel(order_currency=self.args.order_currency, test=self.args.test, period=self.args.period)
         else:
             raise ValueError(f'invalid model {self.args.model}')
 
@@ -64,7 +65,7 @@ class Hangang():
                     orderbook = self._scenario.get_orderbook()
                     last_orderbook = orderbook
                 except StopIteration:
-                    logging.info(f'잔고: {self.balance} 총액: {self.balance.balance + self.balance.units * last_orderbook["bid"]}')
+                    logging.info(f'잔고: {self.balance} 총액: {format(int(self.balance.balance + self.balance.units * last_orderbook["bid"]), ",")}원')
                     break
                     
             
@@ -73,8 +74,7 @@ class Hangang():
             date = orderbook.get('date', '')
             logging.info(f'[APP][ROUTINE] orderbook date: {date}.')
             logging.debug(f'[APP][ROUTINE] 모델을 업데이트 하는 중입니다.')
-            commands = self.model.update('orderbook', orderbook)
-
+            commands = self.model.update(orderbook)
             orders = self.process_commands(commands, orderbook)['orders']
             events = self.process_orders(orders)['events']
 
@@ -173,7 +173,9 @@ class Hangang():
 
                 self.balance.add(tools.get_krw(units, orderbook['bid']))
                 self.balance.sub_units(units)
-
+                # if orderbook['bid'] < 0:
+                #     print(orderbook)
+                #     exit(0)
                 result['orders'][order_id] = {
                     'order_id': order_id,
                     'units': units,
@@ -188,13 +190,9 @@ class Hangang():
         return result
 
 
-<<<<<<< Updated upstream
-parser = argparse.ArgumentParser(description='hangang')
-=======
 parser = argparse.ArgumentParser(description="""
 Hangang Example:  python3 app.py --model wave --balance 1000000 --scenario-name 3m-backtest --test --debug --order-currency BTC --wait-seconds 1
 """)
->>>>>>> Stashed changes
 # parser.add_argument(
 #     'action', help='The name of the command to be executed', type=str)
 parser.add_argument('--model', help='model name', required=True)
@@ -205,6 +203,8 @@ parser.add_argument('--test', action='store_true')
 parser.add_argument('--debug', action='store_true')
 parser.add_argument('--order-currency', help='주문 통화(코인)', required=True)
 parser.add_argument('--wait-seconds', help='대기 시간', default=60, type=float)
+parser.add_argument('--period', help='CMO 모델에서 사용하는 매개변수', default=6, type=int)
+
 
 
 args = parser.parse_args()
