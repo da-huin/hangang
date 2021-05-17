@@ -120,7 +120,7 @@ docker run -it --rm -v ~/.aws/credentials:/root/.aws/credentials -v $PWD/app:/ap
 
 ```bash
 # ubuntu crontab
-0 */6 * * * cd /home/ubuntu/hangang && sudo docker run -i --rm -v ~/.aws/credentials:/root/.aws/credentials -v $PWD/app:/app hangang python3 crawler.py --crawler-name bithumb-1m --order-currency BTC,ETH,ETC,XRP,EOS >> ~/logs/hangang_crawler_bithumb.log 2>&1
+0 */6 * * * cd /home/ubuntu/hangang && sudo docker run -i --rm -v ~/.aws/credentials:/root/.aws/credentials -v $PWD/app:/app hangang cd hangang && python3 hangang/crawler.py --crawler-name bithumb-1m --order-currency BTC,ETH,ETC,XRP,EOS >> ~/logs/hangang_crawler_bithumb.log 2>&1
 ```
 
 ## crontab 설정방법

@@ -3,9 +3,10 @@ class Balance():
         self._balance = balance
         self._units = units
 
-    def __str__(self):
-        return str(f'Balance: {self._balance}, Units: {self._units}')
-    
+    def get_balance_string(self, price):
+        amount_str = format(self.get_amount(price), ',') + '원'
+        return f'지갑(현금): {format(self.balance, ",")}원 지갑(코인): {self.units} 총액: {amount_str}'
+        
     @property
     def balance(self):
         return self._balance
@@ -39,3 +40,13 @@ class Balance():
         self._units -= units
 
         return self._units
+
+    def get_amount(self, price):
+        """
+        price: 시세
+        """
+        return int(self.balance + self.units * price)
+        
+
+
+
