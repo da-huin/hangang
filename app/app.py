@@ -44,7 +44,6 @@ class Hangang():
         return model
 
     def main(self):
-
         self.routine()
 
     def routine(self):

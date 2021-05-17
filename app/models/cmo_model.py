@@ -1,6 +1,7 @@
 import numpy as np
 import warnings
 from collections import deque
+
 # from simple_utils import simple_logging as logging
 
 class CMOModel():
