@@ -9,10 +9,10 @@ class Scenario():
         self._order_currency = order_currency
 
         self._scenario = {}
+        if name.endswith('-bithumb-backtest'):
+            interval = name.replace('-bithumb-backtest', '')
 
-        for interval in ['1m', '3m', '5m', '10m', '30m', '1h', '6h', '12h', '24h']:
-
-            self._scenario[f'{interval}'] = {
+            self._scenario[name] = {
                 order_currency: {
                     'get_orderbook': self.get_candlestick_iter(interval)
                 }
