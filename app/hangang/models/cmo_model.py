@@ -2,8 +2,8 @@ import numpy as np
 import warnings
 from collections import deque
 from .components.structure import Command, SellOrderItem, BuyOrderItem
+from simple_utils import simple_logging as logging
 
-# from simple_utils import simple_logging as logging
 
 class CMOModel():
     def __init__(self, order_currency, test, period):
@@ -35,7 +35,6 @@ class CMOModel():
         if len(self._dq) == self._period + 1:
 
             prices = list(self._dq)
-            
             
             prices_prev = prices[:-1]
             prices_curr = prices[1:]

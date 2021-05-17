@@ -102,7 +102,7 @@ class Hangang():
 
                 elif isinstance(order_item, SellOrderItem):
                     logging.info(f'[APP][SEND_EVENTS][판매] 판매가격: {format(order_item.bid, ",")}원 수량: {order_item.units}')
-                    logging.info(f'[APP][SEND_EVENTS][구매] {self.balance.get_balance_string(order_item.bid)}')
+                    logging.info(f'[APP][SEND_EVENTS][판매] {self.balance.get_balance_string(order_item.bid)}')
                 else:
                     raise ValueError(f'invalid kind {type(order_item)}')                
                 self.model.event('order', order_item)
