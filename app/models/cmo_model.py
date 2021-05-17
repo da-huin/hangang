@@ -16,6 +16,8 @@ class CMOModel():
         self._buy_price = np.nan
         self._quantity = np.nan
 
+        self._momentum = np.nan # Momentum flag. The indicator that the market keeps going in current direction (bullish/bearish).
+
     def update(self, market_data):
         '''
         Update current market data.
@@ -45,34 +47,46 @@ class CMOModel():
             
             self._dq.popleft()
 
-        # Upbit exchange API allows 15/s requests for non-orders. If cnt = 15, it means 1 second has passed.
-        # Ideally, each of these conditional statements should be visited 15 times per second.
+        if self._tr_flag == 0: # Trying to buy
+            if cmo_curr > -50 and self._watchlist == 1: # Error case
+                self._watchlist = 0
 
-        if self._tr_flag == 0:
             if cmo_curr <= -50 and self._watchlist == 0:
                 self._watchlist = 1 # Set to watchlist
 
             elif cmo_curr <= -50 and self._watchlist == 1:
+                if cmo_prev >= cmo_curr and np.isnan(self._momentum):
+                    # The price keeps going down. We're not gonna buying that.
+                    self._momentum = 1
 
-                if cmo_prev >= cmo_curr: # Refresh CMO in order to reduce risks
-                    # Buy the fuck that
+                elif cmo_prev < cmo_curr and self._momentum == 1:
+                    # The price has gone up just one time. But is the market really bullish?
+                    # We are not sure. So we're gonna watch one more time.
+                    self._momentum = 0
+
+                elif cmo_prev < cmo_curr and self._momentum == 0:
+                    # Okay, the price is going up. Let's buy the item!
                     order = {
                         'kind': 'buy',
                         'rate': 1,
                         # 'ask': ask,
                         'message': 'buy'
                     }
+                    # logging.debug(f'CURRENT CMO: {cmo_curr}')
                     self._watchlist = 0 # Back to normal
+                    self._momentum = np.nan
                     order_list.append(order)
+                elif cmo_prev >= cmo_curr:
+                    pass
 
         elif self._tr_flag == 1: # Hold? Drop?
             if cmo_curr >= 50 and self._watchlist == 0:
                 self._watchlist = 1
             
             elif cmo_curr >= 50 and self._watchlist == 1:
-                if cmo_prev <= cmo_curr:
+                if cmo_prev <= cmo_curr and cmo_curr != 100:
                     pass
-                else:
+                elif cmo_prev > cmo_curr or cmo_curr == 100:
                     order = {
                         'kind': 'sell',
                         'units': self._quantity,
@@ -81,6 +95,7 @@ class CMOModel():
                         # 'ask': ask,
                         'message': 'sell'
                     }
+                    # logging.debug(f'CURRENT CMO: {cmo_curr}')
                     self._watchlist = 0
                     order_list.append(order)
             # elif 0.9 * self._buy_price < market_data['ask']:
@@ -112,23 +127,25 @@ class CMOModel():
         # "units": "수량",
         # "price": "구매 요청 가격",
         # "message": "모델에서 구매 요청시에 보낸 메세지"
-        temp = dict()
+
+        # temp = dict()
         if tr_type == 'transaction':
             order_data = event_data['order']
             event_kind = order_data['kind']
             if event_kind == 'buy':
                 # Save price, quantity, and value
-                temp = {
-                    'units': order_data['units'],
-                    'price': order_data['price'],
-                    'value': order_data['units'] * order_data['price']
-                }
+                # temp = {
+                #     'units': order_data['units'],
+                #     'price': order_data['price'],
+                #     'value': order_data['units'] * order_data['price']
+                # }
+                
                 self._tr_flag = 1
                 self._buy_price = order_data['price']
                 self._quantity = order_data['units']
 
             elif event_kind == 'sell':
-                temp.clear()
+                # temp.clear()
                 self._tr_flag = 0
                 self._buy_price = np.nan
             else:
@@ -172,7 +189,7 @@ class CMOModel():
 
         return cmo
 
-    # Legacy code
+    # Legacy method
     def get_cmo_base(self, data, period):
         '''
         Get all the pervious CMOs.

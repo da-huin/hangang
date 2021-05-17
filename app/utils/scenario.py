@@ -21,8 +21,8 @@ class Scenario():
     def get_candlestick_iter(self, interval):
         
         return iter([{
-            'ask': item['avg_price'], # The price when we get if we sell the item
-            'bid': item['avg_price'], # The price when we have to pay the item
+            'ask': item['end_price'], # The price when we get if we sell the item
+            'bid': item['end_price'], # The price when we have to pay the item
             # 'avg': item['avg_price'], # Average price
             'date': item['date'] # Date. What did you expect?
         } for item in self._bithumb.get_candlestick_current_interval(interval)])
