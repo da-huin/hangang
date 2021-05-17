@@ -126,7 +126,7 @@ class Bithumb():
             avg_price = float((float(high_price) + float(low_price)) / 2)
             data.append({
                 'start_price': start_price,
-                'end_price': end_price,
+                'end_price': float(end_price),
                 'high_price': high_price,
                 'low_price': low_price,
                 'volume': volume,
