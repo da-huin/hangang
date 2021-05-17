@@ -1,5 +1,5 @@
 import uuid
-from exchange import bithumb
+from .exchange import bithumb
 
 
 class Scenario():
