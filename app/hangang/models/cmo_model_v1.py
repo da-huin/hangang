@@ -81,7 +81,7 @@ class CMOModel():
         temp = dict()
         if event_type == 'order':
             order_item = event_data
-            if order_item.is_complete():
+            if order_item.is_success():
                 if isinstance(order_item, BuyOrderItem):
                     temp = {
                         'units': order_item.units,

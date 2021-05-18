@@ -91,7 +91,7 @@ class CMOModel():
         
         if event_type == 'order':
             order_item = event_data
-            if order_item.is_complete():
+            if order_item.is_success():
                 if isinstance(order_item, BuyOrderItem):
                     self._tr_flag = 1
                     self._buy_price = order_item.ask

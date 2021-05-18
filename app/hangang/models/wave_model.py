@@ -116,7 +116,7 @@ class WaveModel():
     def event(self, event_type, event_data):
         if event_type == 'order':
             order_item = event_data
-            if order_item.is_complete():
+            if order_item.is_success():
                 if isinstance(order_item, BuyOrderItem):
                     self.line.insert(Point(
                         kind=PointType.TRANSACTION_BUY, price=order_item.ask, units=order_item.units, additional_bought=False))
