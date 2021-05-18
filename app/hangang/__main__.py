@@ -7,6 +7,7 @@ import argparse
 import simple_utils
 from .models import wave_model
 from .models import cmo_model
+from .models import cmo_model_v1
 from .utils.balance import Balance
 from .utils import tools
 import time
@@ -24,8 +25,9 @@ class Hangang():
         self._bithumb = Bithumb(self.args.order_currency)
         self.balance = Balance(self.args.balance)
         self.wait_seconds = self.args.wait_seconds
-        self._scenario = Scenario(self.args.scenario_name, self.args.order_currency)
+        self._scenario = Scenario(self.args.scenario_name, self.args.order_currency, self.args.scenario_price_type)
         self._model = self._get_model()
+        
         
 
     @property
@@ -37,6 +39,8 @@ class Hangang():
             model = wave_model.WaveModel(order_currency=self.args.order_currency, test=self.args.test)
         elif self.args.model == 'cmo':
             model = cmo_model.CMOModel(order_currency=self.args.order_currency, test=self.args.test, period=self.args.period)
+        elif self.args.model == 'cmo_v1':
+            model = cmo_model_v1.CMOModel(order_currency=self.args.order_currency, test=self.args.test, period=self.args.period)
         else:
             raise ValueError(f'invalid model {self.args.model}')
 
@@ -157,9 +161,22 @@ class Hangang():
 
         return command
 
-parser = argparse.ArgumentParser(description="""
-Hangang Example: python3 -m hangang --model wave --balance 1000000 --scenario-name 3m-bithumb-backtest --test --debug --order-currency BTC --wait-seconds 1
+print("""
+██╗  ██╗ █████╗ ███╗   ██╗ ██████╗  █████╗ ███╗   ██╗ ██████╗ 
+██║  ██║██╔══██╗████╗  ██║██╔════╝ ██╔══██╗████╗  ██║██╔════╝ 
+███████║███████║██╔██╗ ██║██║  ███╗███████║██╔██╗ ██║██║  ███╗
+██╔══██║██╔══██║██║╚██╗██║██║   ██║██╔══██║██║╚██╗██║██║   ██║
+██║  ██║██║  ██║██║ ╚████║╚██████╔╝██║  ██║██║ ╚████║╚██████╔╝
+╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
+
+**Examples**
+1. python3 -m hangang --model cmo_v1 --balance 1000000 --scenario-name 1h-bithumb-backtest --test --order-currency LUNA --wait-seconds 0.001 --period 4 --scenario-price-type avg_price
+
+2. python3 -m hangang --model cmo --balance 1000000 --scenario-name 1m-bithumb-backtest --test --order-currency LUNA --wait-seconds 0.001 --period 3 --scenario-price-type end_price
+
+3. python3 -m hangang --model wave --balance 1000000 --scenario-name 3m-bithumb-backtest --test --debug --order-currency BTC --wait-seconds 1
 """)
+parser = argparse.ArgumentParser(description='')
 parser.add_argument('--model', help='model name', required=True)
 parser.add_argument('--balance', help='balance', required=True, type=int)
 parser.add_argument('--scenario-name', help='scenario name',
@@ -168,17 +185,11 @@ parser.add_argument('--test', action='store_true')
 parser.add_argument('--debug', action='store_true')
 parser.add_argument('--order-currency', help='주문 통화(코인)', required=True)
 parser.add_argument('--wait-seconds', help='대기 시간', default=60, type=float)
+parser.add_argument('--scenario-price-type', help='시나리오에서 사용하는 가격 타입 - end_price | avg_price | ...', default='end_price')
 parser.add_argument('--period', help='CMO 모델에서 사용하는 매개변수', default=6, type=int)
 
 args = parser.parse_args()
-print("""
-██╗  ██╗ █████╗ ███╗   ██╗ ██████╗  █████╗ ███╗   ██╗ ██████╗ 
-██║  ██║██╔══██╗████╗  ██║██╔════╝ ██╔══██╗████╗  ██║██╔════╝ 
-███████║███████║██╔██╗ ██║██║  ███╗███████║██╔██╗ ██║██║  ███╗
-██╔══██║██╔══██║██║╚██╗██║██║   ██║██╔══██║██║╚██╗██║██║   ██║
-██║  ██║██║  ██║██║ ╚████║╚██████╔╝██║  ██║██║ ╚████║╚██████╔╝
-╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
-""")
+
 
 print(args)
 
