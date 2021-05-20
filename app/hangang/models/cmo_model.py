@@ -40,8 +40,11 @@ class CMOModel():
 
             cmo_prev = self.calc_cmo(prices_prev)
             cmo_curr = self.calc_cmo(prices_curr)
+            logging.info(f'[CMO][UPDATE] PREV: {cmo_prev} CURR: {cmo_curr}')
             
             self._dq.popleft()
+        else:
+            logging.info(f'[CMO][UPDATE] Waiting for the queue to fill up.')
 
         if self._tr_flag == 0: # Trying to buy
             if cmo_curr > -50 and self._watchlist == 1: # Error case

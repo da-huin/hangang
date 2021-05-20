@@ -36,6 +36,9 @@ class Hangang():
 
     def _get_model(self):
         if self.args.model == 'wave':
+            if not self.args.test:
+                raise ValueError('wave 모델로는 테스트만 가능합니다.')
+
             model = wave_model.WaveModel(order_currency=self.args.order_currency, test=self.args.test)
         elif self.args.model == 'cmo':
             model = cmo_model.CMOModel(order_currency=self.args.order_currency, test=self.args.test, period=self.args.period)
@@ -71,11 +74,12 @@ class Hangang():
                     logging.info(self.balance.get_balance_string(last_orderbook['bid']))
                     break
             
+
             date = orderbook.get('date', '')
             ask = orderbook['ask']
             bid = orderbook['bid']
             
-            logging.info(f'[APP][ROUTINE] orderbook date: {date}.')
+            logging.info(f'[APP][ROUTINE] {self.args.order_currency} | {date} | {ask} | {bid}')
             logging.debug(f'[APP][ROUTINE] 모델을 업데이트 하는 중입니다.')
             command = self.model.update(ask, bid)
             command = self.process_command(command, ask, bid)
@@ -98,17 +102,19 @@ class Hangang():
 
         for order_item in command.order.all():
             if order_item.order_id not in ongoing_orders:
-                order_item.success()
-                
-                if isinstance(order_item, BuyOrderItem):
-                    logging.info(f'[APP][SEND_EVENTS][구매] 구매가격: {format(order_item.ask, ",")}원 수량: {order_item.units}')
-                    logging.info(f'[APP][SEND_EVENTS][구매] {self.balance.get_balance_string(order_item.ask)}')
-
-                elif isinstance(order_item, SellOrderItem):
-                    logging.info(f'[APP][SEND_EVENTS][판매] 판매가격: {format(order_item.bid, ",")}원 수량: {order_item.units}')
-                    logging.info(f'[APP][SEND_EVENTS][판매] {self.balance.get_balance_string(order_item.bid)}')
+                if order_item.is_failed():
+                    logging.info(f'[APP][SEND_EVENTS] 명령어 실패 코드: {order_item.code}')
                 else:
-                    raise ValueError(f'invalid kind {type(order_item)}')                
+                    order_item.success()
+                    if isinstance(order_item, BuyOrderItem):
+                        logging.info(f'[APP][SEND_EVENTS][구매] 구매가격: {format(order_item.ask, ",")}원 수량: {order_item.units}')
+                        logging.info(f'[APP][SEND_EVENTS][구매] {self.balance.get_balance_string(order_item.ask)}')
+
+                    elif isinstance(order_item, SellOrderItem):
+                        logging.info(f'[APP][SEND_EVENTS][판매] 판매가격: {format(order_item.bid, ",")}원 수량: {order_item.units}')
+                        logging.info(f'[APP][SEND_EVENTS][판매] {self.balance.get_balance_string(order_item.bid)}')
+                    else:
+                        raise ValueError(f'invalid kind {type(order_item)}')                
                 self.model.event('order', order_item)
 
         return events
@@ -124,12 +130,15 @@ class Hangang():
                 # 빗썸 기본 수수료 0.25%
                 minium_price = 1000 * 1.0025
                 if amount < minium_price:
-                    logging.debug(
-                        f'[APP][COMMAND][{order_item.kind}] 요구한 가격이 {minium_price}원 보다 적기 떄문에 취소되었습니다.')
+                    logging.info(
+                        f'[APP][COMMAND][{order_item.kind}] 요구한 가격({amount}원)이 최소가격({minium_price}원) 보다 적기 떄문에 취소되었습니다.')
                     order_item.fail(code=-1)
                 else:
                     units = tools.get_units(amount, ask)
+                   
                     if not self.args.test:
+                        # logging.info(f'[APP][COMMAND] 빗썸에 구매 요청을 보내지 않았습니다.')
+                        # order_id = 1
                         logging.info(f'[APP][COMMAND] 빗썸에 구매 요청을 보내는 중입니다.')
                         order_id = self._bithumb.trade_market_buy(units)
                     else:
@@ -138,12 +147,15 @@ class Hangang():
 
                     self.balance.sub(amount)
                     self.balance.add_units(units)
+  
                     order_item.ongoing(order_id=order_id, ask=ask, units=units)
 
             elif order_item.kind == 'sell':
                 logging.debug(f'[APP][COMMAND][{order_item.kind}] {order_item.units}(units) 만큼 판매를 시도합니다.')
 
                 if not self.args.test:
+                    # logging.info(f'[APP][COMMAND] 빗썸에 판매 요청을 보내지 않았습니다.')
+                    # order_id = 1
                     logging.info(f'[APP][COMMAND] 빗썸에 판매 요청을 보내는 중입니다.')
                     order_id = self._bithumb.trade_market_sell(
                         order_item.units)
@@ -172,9 +184,18 @@ print("""
 **Examples**
 1. python3 -m hangang --model cmo_v1 --balance 1000000 --scenario-name 1h-bithumb-backtest --test --order-currency LUNA --wait-seconds 0.001 --period 4 --scenario-price-type avg_price
 
-2. python3 -m hangang --model cmo --balance 1000000 --scenario-name 1m-bithumb-backtest --test --order-currency LUNA --wait-seconds 0.001 --period 3 --scenario-price-type end_price
+2. python3 -m hangang --model cmo --balance 1000000 --scenario-name 1m-bithumb-backtest --test --order-currency LUNA --wait-seconds 0.001 --period 3
 
 3. python3 -m hangang --model wave --balance 1000000 --scenario-name 3m-bithumb-backtest --test --debug --order-currency BTC --wait-seconds 1
+
+# 실시간 테스트
+4. python3 -m hangang --model wave --balance 1500 --order-currency EOS --wait-seconds 1 --scenario-name realtime --test
+
+5. [PROD] python3 -m hangang --model cmo --balance 1500 --order-currency EOS --wait-seconds 10 --period 4
+
+6. [PROD] python3 -m hangang --model wave --balance 1500 --order-currency EOS --wait-seconds 10
+
+
 """)
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--model', help='model name', required=True)

@@ -8,6 +8,17 @@ class OrderItem():
     def kind(self):
         return self._kind
 
+    @property
+    def code(self):
+        return self._code
+
+    def code_title(self):
+        if self._code == -1:
+            return '요구한 구매 가격이 최소 가격보다 작습니다.'
+        else:
+            raise Exception(f'invalid code {self._code}')
+        
+
     def set(self, key, value):
         self._data[key] = value
         

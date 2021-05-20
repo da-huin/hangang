@@ -29,7 +29,7 @@ class Scenario():
         } for item in self._bithumb.get_candlestick_current_interval(interval)])
 
     def get_orderbook(self):
-        if self._name == 'sample':
+        if self._name == 'realtime':
             return self._bithumb.get_orderbook()
         else:
             return next(self._scenario[self._name][self._order_currency]['get_orderbook'])
