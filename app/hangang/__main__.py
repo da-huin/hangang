@@ -78,6 +78,13 @@ class Hangang():
             date = orderbook.get('date', '')
             ask = orderbook['ask']
             bid = orderbook['bid']
+
+            # 예: 1830 -> 1790
+            # 구매시: 실제 시세보다 높음
+            ask += ask * (self.args.commission_rate / 100)
+            # 판매시: 실제 시세보다 낮음
+            bid -= bid * (self.args.commission_rate / 100)
+
             
             logging.info(f'[APP][ROUTINE] {self.args.order_currency} | {date} | {ask} | {bid}')
             logging.debug(f'[APP][ROUTINE] 모델을 업데이트 하는 중입니다.')
@@ -128,7 +135,7 @@ class Hangang():
                 logging.debug(f'[APP][COMMAND][{order_item.kind}] {amount} 만큼 구매를 시도합니다.')
 
                 # 빗썸 기본 수수료 0.25%
-                minium_price = 1000 * 1.0025
+                minium_price = 1000 * (1 + (self.args.commission_rate / 100))
                 if amount < minium_price:
                     logging.info(
                         f'[APP][COMMAND][{order_item.kind}] 요구한 가격({amount}원)이 최소가격({minium_price}원) 보다 적기 떄문에 취소되었습니다.')
@@ -208,6 +215,7 @@ parser.add_argument('--order-currency', help='주문 통화(코인)', required=T
 parser.add_argument('--wait-seconds', help='대기 시간', default=60, type=float)
 parser.add_argument('--scenario-price-type', help='시나리오에서 사용하는 가격 타입 - end_price | avg_price | ...', default='end_price')
 parser.add_argument('--period', help='CMO 모델에서 사용하는 매개변수', default=6, type=int)
+parser.add_argument('--commission-rate', help='거래소 수수료 비율', default=0.25, type=float)
 
 args = parser.parse_args()
 
