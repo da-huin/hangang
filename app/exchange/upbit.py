@@ -47,5 +47,29 @@ class Upbit:
         response = requests.request("GET", url, params=querystring)
         print(response.text)
 
+    def get_ticker_data(self, item):
+        url = "https://api.upbit.com/v1/ticker"
+
+        for i in range(len(item)):
+            item[i] = "KRW-" + item[i]
+        ', '.join(item) # Concatenate strings
+
+        querystring = {"markets":item}
+        headers = {"Accept": "application/json"}
+        response = requests.request("GET", url, headers=headers, params=querystring)
+
+        print(response.text)
+
+    def get_candle_minute(self, item, minute, period):
+        url = "https://api.upbit.com/v1/candles/minutes/" + str(minute)
+        item = "KRW-" + item
+        querystring = {"market":item,"count":int(period)}
+        headers = {"Accept": "application/json"}
+        response = requests.request("GET", url, headers=headers, params=querystring)
+        # print(response.text)
+        for idx in range(period):
+            print(response.json()[idx]['candle_date_time_kst'], response.json()[idx]['trade_price'])
+
+
 ubt = Upbit()
-ubt.get_my_asset()
+ubt.get_candle_minute('XRP', 1, 5)
