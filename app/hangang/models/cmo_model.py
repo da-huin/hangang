@@ -1,7 +1,9 @@
 import numpy as np
 import warnings
 from collections import deque
-# from simple_utils import simple_logging as logging
+from .components.structure import Command, SellOrderItem, BuyOrderItem
+from simple_utils import simple_logging as logging
+
 
 class CMOModel():
     def __init__(self, order_currency, test, period):
@@ -17,19 +19,15 @@ class CMOModel():
 
         self._momentum = np.nan # Momentum flag. The indicator that the market keeps going in current direction (bullish/bearish).
 
-    def update(self, market_data):
+    def update(self, ask, bid):
         '''
         Update current market data.
         Return order (to be given the market).
-        market_data: Consists of ask, bid ...
         '''
-
-        ask = market_data['ask']
-        # bid = market_data['bid']
+        command = Command()
 
         cmo_prev = np.nan
         cmo_curr = np.nan
-        order_list = []
 
         self._dq.append(ask)
         
@@ -37,14 +35,16 @@ class CMOModel():
 
             prices = list(self._dq)
             
-            
             prices_prev = prices[:-1]
             prices_curr = prices[1:]
 
             cmo_prev = self.calc_cmo(prices_prev)
             cmo_curr = self.calc_cmo(prices_curr)
+            logging.info(f'[CMO][UPDATE] PREV: {cmo_prev} CURR: {cmo_curr}')
             
             self._dq.popleft()
+        else:
+            logging.info(f'[CMO][UPDATE] Waiting for the queue to fill up.')
 
         if self._tr_flag == 0: # Trying to buy
             if cmo_curr > -50 and self._watchlist == 1: # Error case
@@ -65,16 +65,9 @@ class CMOModel():
 
                 elif cmo_prev < cmo_curr and self._momentum == 0:
                     # Okay, the price is going up. Let's buy the item!
-                    order = {
-                        'kind': 'buy',
-                        'rate': 1,
-                        # 'ask': ask,
-                        'message': 'buy'
-                    }
-                    # logging.debug(f'CURRENT CMO: {cmo_curr}')
                     self._watchlist = 0 # Back to normal
                     self._momentum = np.nan
-                    order_list.append(order)
+                    command.order.buy_at_rate(rate=1)
                 elif cmo_prev >= cmo_curr:
                     pass
 
@@ -86,77 +79,33 @@ class CMOModel():
                 if cmo_prev <= cmo_curr and cmo_curr != 100:
                     pass
                 elif cmo_prev > cmo_curr or cmo_curr == 100:
-                    order = {
-                        'kind': 'sell',
-                        'units': self._quantity,
-                        # 'bid': bid,
-                        # # 정보제공용 
-                        # 'ask': ask,
-                        'message': 'sell'
-                    }
-                    # logging.debug(f'CURRENT CMO: {cmo_curr}')
                     self._watchlist = 0
-                    order_list.append(order)
-            # elif 0.9 * self._buy_price < market_data['ask']:
-            #     order = {
-            #             'kind': 'sell',
-            #             'units': self._quantity,
-            #             # 'bid': bid,
-            #             # # 정보제공용 
-            #             # 'ask': ask,
-            #             'message': 'sell'
-            #         }
-            #     self._watchlist = 0
-            #     order_list.append(order)
+                    command.order.sell_by_units(self._quantity)
 
+        return command
 
-        return order_list
-
-    def event(self, tr_type, event_data):
+    def event(self, event_type, event_data):
         '''
         Main function inform this model of what kind of transaction has been made.
         
-        tr_type: type of transaction {buy, sell, command_failed, ...}
+        event_type: type of transaction {buy, sell, command_failed, ...}
         event_data: More detailed data about the transaction. Refer to readme.md for more information.
         '''
         
-        # order_data looks like as follows:
-        # "kind": "buy",
-        # "order_id": "거래소에 요청한 후 받은 주문번호",
-        # "units": "수량",
-        # "price": "구매 요청 가격",
-        # "message": "모델에서 구매 요청시에 보낸 메세지"
-
-        # temp = dict()
-        if tr_type == 'transaction':
-            order_data = event_data['order']
-            event_kind = order_data['kind']
-            if event_kind == 'buy':
-                # Save price, quantity, and value
-                # temp = {
-                #     'units': order_data['units'],
-                #     'price': order_data['price'],
-                #     'value': order_data['units'] * order_data['price']
-                # }
-                
-                self._tr_flag = 1
-                self._buy_price = order_data['price']
-                self._quantity = order_data['units']
-
-            elif event_kind == 'sell':
-                # temp.clear()
-                self._tr_flag = 0
-                self._buy_price = np.nan
-            else:
-                raise ValueError(f'invalid event kind {event_kind}')
-        elif tr_type == 'command_failed':
-            code = event_data['code']
-            if code == -1:
-                pass
-            else:
-                pass
+        if event_type == 'order':
+            order_item = event_data
+            if order_item.is_success():
+                if isinstance(order_item, BuyOrderItem):
+                    self._tr_flag = 1
+                    self._buy_price = order_item.ask
+                    self._quantity = order_item.units
+                elif isinstance(order_item, SellOrderItem):
+                    self._tr_flag = 0
+                    self._buy_price = np.nan
+                else:
+                    raise ValueError(f'invalid kind {type(order_item)}')
         else:
-            raise ValueError(f'invalid type {tr_type}')
+            raise ValueError(f'invalid kind {event_type}')
 
 
     # Using a queue, we can calculate previous CMO and CMO now

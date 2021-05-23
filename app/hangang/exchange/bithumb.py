@@ -1,3 +1,4 @@
+import traceback
 import datetime
 import aws_glove
 import ccxt
@@ -6,6 +7,8 @@ import time
 import boto3
 import json
 
+import simple_utils
+from simple_utils import simple_logging as logging
 class Bithumb():
     def __init__(self, order_currency):
         self.order_currency = order_currency
@@ -25,13 +28,25 @@ class Bithumb():
 
     def get_orderbook(self):
         payment_currency = 'KRW'
-        response = requests.get(f'https://api.bithumb.com/public/orderbook/{self.order_currency}_{payment_currency}')
-        data = response.json()['data']
+        while True:
+            response = None
+            try:
+                response = requests.get(f'https://api.bithumb.com/public/orderbook/{self.order_currency}_{payment_currency}')
+                data = response.json()['data']
+            except:
+                print(traceback.format_exc())
+                logging.info('response.status_code: ', response.status_code)
+                if response:
+                    logging.info('response.text:', response.text)
+
+                time.sleep(10)
+            else:
+                break
 
         asks = data.get('asks', [])
         bids = data.get('bids', [])
-        ask = int(asks[0]['price']) if len(asks) else -1
-        bid = int(bids[0]['price']) if len(bids) else -1
+        ask = float(asks[0]['price']) if len(asks) else -1
+        bid = float(bids[0]['price']) if len(bids) else -1
 
         if ask == -1 or bid == -1:
             raise ValueError('cannot found ask or bid.')
@@ -39,6 +54,7 @@ class Bithumb():
         result = {
             'ask': ask,
             'bid': bid,
+            'date': simple_utils.time.get_kst().strftime('%Y-%m-%d %H:%M:%S'),
             'data': data
         }
 
@@ -125,12 +141,12 @@ class Bithumb():
             date = datetime.datetime.fromtimestamp(int(mtimestamp)/1000)
             avg_price = float((float(high_price) + float(low_price)) / 2)
             data.append({
-                'start_price': start_price,
+                'start_price': float(start_price),
                 'end_price': float(end_price),
-                'high_price': high_price,
-                'low_price': low_price,
-                'volume': volume,
-                'avg_price': avg_price,
+                'high_price': float(high_price),
+                'low_price': float(low_price),
+                'volume': float(volume),
+                'avg_price': float(avg_price),
                 'date': date
             })
 
