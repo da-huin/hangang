@@ -43,7 +43,21 @@
 2. bash compose.sh
 3. docker exec -it hangang bash
 4. cd /app
-5. python3 app.py -h
+
+    **Examples**
+    1. python3 -m hangang --model cmo_v1 --balance 1000000 --scenario-name 1h-bithumb-backtest --test --order-currency LUNA --wait-seconds 0.001 --period 4 --scenario-price-type avg_price
+
+    2. python3 -m hangang --model cmo --balance 1000000 --scenario-name 1m-bithumb-backtest --test --order-currency LUNA --wait-seconds 0.001 --period 3
+
+    3. python3 -m hangang --model wave --balance 1000000 --scenario-name 3m-bithumb-backtest --test --debug --order-currency BTC --wait-seconds 1
+
+    # 실시간 테스트
+    4. python3 -m hangang --model cmo --balance 3000 --order-currency DOGE --wait-seconds 60 --scenario-name realtime --test --commission-rate 0.05
+
+    5. python3 -m hangang --model cmo --balance 1500 --order-currency EOS --wait-seconds 10 --period 4 --test
+
+    6. [PROD] python3 -m hangang --model wave --balance 1500 --order-currency EOS --wait-seconds 10
+
 ```
 
 

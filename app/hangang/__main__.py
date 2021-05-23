@@ -4,7 +4,6 @@ import argparse
 from .exchange.bithumb import Bithumb
 from simple_utils import simple_logging as logging
 import argparse
-import simple_utils
 from .models import wave_model
 from .models import cmo_model
 from .models import cmo_model_v1
@@ -76,7 +75,6 @@ class Hangang():
                 logging.info(f'[APP][ROUTINE] 0초가 될 때까지 대기하는 중입니다.')
                 while True:
                     if datetime.datetime.now().second == 0:
-                        print(datetime.datetime.now())
                         break
                     time.sleep(0.1)
             else:
@@ -206,19 +204,7 @@ print("""
 ██║  ██║██║  ██║██║ ╚████║╚██████╔╝██║  ██║██║ ╚████║╚██████╔╝
 ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
 
-**Examples**
-1. python3 -m hangang --model cmo_v1 --balance 1000000 --scenario-name 1h-bithumb-backtest --test --order-currency LUNA --wait-seconds 0.001 --period 4 --scenario-price-type avg_price
 
-2. python3 -m hangang --model cmo --balance 1000000 --scenario-name 1m-bithumb-backtest --test --order-currency LUNA --wait-seconds 0.001 --period 3
-
-3. python3 -m hangang --model wave --balance 1000000 --scenario-name 3m-bithumb-backtest --test --debug --order-currency BTC --wait-seconds 1
-
-# 실시간 테스트
-4. python3 -m hangang --model wave --balance 1500 --order-currency EOS --wait-seconds 1 --scenario-name realtime --test
-
-5. python3 -m hangang --model cmo --balance 1500 --order-currency EOS --wait-seconds 10 --period 4 --test
-
-6. [PROD] python3 -m hangang --model wave --balance 1500 --order-currency EOS --wait-seconds 10
 
 
 """)
