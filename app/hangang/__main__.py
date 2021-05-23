@@ -13,6 +13,7 @@ from .utils import tools
 import time
 from .scenario import Scenario
 from .models.components.structure import SellOrderItem, BuyOrderItem
+import datetime
 
 class Hangang():
     def __init__(self, args):
@@ -27,8 +28,7 @@ class Hangang():
         self.wait_seconds = self.args.wait_seconds
         self._scenario = Scenario(self.args.scenario_name, self.args.order_currency, self.args.scenario_price_type)
         self._model = self._get_model()
-        
-        
+
 
     @property
     def model(self):
@@ -55,12 +55,33 @@ class Hangang():
     def routine(self):
         index = 0
         last_orderbook = None
+        first = True
 
+            
+
+            
         while True:
+       
             logging.debug(
                 f'[APP][ROUTINE] ==================== {index} ====================')
 
             logging.debug(f'[APP][ROUTINE] 잔고: {self.balance}')
+
+            if not first:            
+                logging.info(f'[APP][ROUTINE] 다음 순환까지 {self.wait_seconds}초 대기 중입니다.')
+            # 1분 이상 단위일 때 00초에서 실행
+            if self.wait_seconds >= 60:
+                if not first:
+                    time.sleep(self.wait_seconds - 30)
+                logging.info(f'[APP][ROUTINE] 0초가 될 때까지 대기하는 중입니다.')
+                while True:
+                    if datetime.datetime.now().second == 0:
+                        print(datetime.datetime.now())
+                        break
+                    time.sleep(0.1)
+            else:
+                if not first:
+                    time.sleep(self.wait_seconds)
 
             if not self.args.test:
                 logging.debug(f'[APP][ROUTINE] 빗썸에서 데이터를 가져오는 중입니다.')
@@ -73,7 +94,6 @@ class Hangang():
                 except StopIteration:
                     logging.info(self.balance.get_balance_string(last_orderbook['bid']))
                     break
-            
 
             date = orderbook.get('date', '')
             ask = orderbook['ask']
@@ -85,17 +105,15 @@ class Hangang():
             # 판매시: 실제 시세보다 낮음
             bid -= bid * (self.args.commission_rate / 100)
 
-            
             logging.info(f'[APP][ROUTINE] {self.args.order_currency} | {date} | {ask} | {bid}')
             logging.debug(f'[APP][ROUTINE] 모델을 업데이트 하는 중입니다.')
             command = self.model.update(ask, bid)
             command = self.process_command(command, ask, bid)
             self.send_events(command)
 
-            logging.debug(f'[APP][ROUTINE] 다음 순환까지 {self.wait_seconds}초 대기 중입니다.')
-            time.sleep(self.wait_seconds)
 
-            # logging.debug('')
+
+            first = False
 
             index += 1
 
@@ -198,7 +216,7 @@ print("""
 # 실시간 테스트
 4. python3 -m hangang --model wave --balance 1500 --order-currency EOS --wait-seconds 1 --scenario-name realtime --test
 
-5. [PROD] python3 -m hangang --model cmo --balance 1500 --order-currency EOS --wait-seconds 10 --period 4
+5. python3 -m hangang --model cmo --balance 1500 --order-currency EOS --wait-seconds 10 --period 4 --test
 
 6. [PROD] python3 -m hangang --model wave --balance 1500 --order-currency EOS --wait-seconds 10
 
