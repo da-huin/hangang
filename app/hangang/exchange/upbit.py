@@ -9,8 +9,11 @@ from urllib.parse import urlencode
 
 class Upbit:
     
-    def __init__(self):
-        pass
+    # Candlestick -> backtest
+    # Real time price -> real time test / actual transaction
+
+    def __init__(self, order_currency):
+        self._order_currency = order_currency
 
     def get_my_asset(self): # Load status of my asset
         payload = {
@@ -60,16 +63,21 @@ class Upbit:
 
         print(response.text)
 
-    def get_candle_minute(self, item, minute, period):
-        url = "https://api.upbit.com/v1/candles/minutes/" + str(minute)
+    def get_candle(self, time_type, item, to, minute=0, period=200):
+        base_url = 'https://api.upbit.com/v1/candles'
+        if time_type == 'minute':
+            url = f"{base_url}/minutes/" + str(minute)
+        else:
+            url = f'{base_url}/{time_type}'
+        
         item = "KRW-" + item
-        querystring = {"market":item,"count":int(period)}
+
+        # querystring = {"market":item, "count":int(period)}
+        querystring = {"market":item, "to": to, "count":int(period)}
         headers = {"Accept": "application/json"}
-        response = requests.request("GET", url, headers=headers, params=querystring)
-        # print(response.text)
-        for idx in range(period):
-            print(response.json()[idx]['candle_date_time_kst'], response.json()[idx]['trade_price'])
+        response = requests.get(url, headers=headers, params=querystring)
+        
+        result = response.json()[::-1]
 
+        return result
 
-ubt = Upbit()
-ubt.get_candle_minute('XRP', 1, 5)

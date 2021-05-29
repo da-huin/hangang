@@ -7,6 +7,7 @@ import argparse
 from .models import wave_model
 from .models import cmo_model
 from .models import cmo_model_v1
+from .models import cmo_model_simple
 from .utils.balance import Balance
 from .utils import tools
 import time
@@ -25,7 +26,7 @@ class Hangang():
         self._bithumb = Bithumb(self.args.order_currency)
         self.balance = Balance(self.args.balance)
         self.wait_seconds = self.args.wait_seconds
-        self._scenario = Scenario(self.args.scenario_name, self.args.order_currency, self.args.scenario_price_type)
+        self._scenario = Scenario(self.args.scenario_name, self.args.order_currency, self.args.scenario_price_type, target_date=self.args.target_date, candles=self.args.candles)
         self._model = self._get_model()
 
 
@@ -34,6 +35,9 @@ class Hangang():
         return self._model
 
     def _get_model(self):
+
+        
+        model = None
         if self.args.model == 'wave':
             if not self.args.test:
                 raise ValueError('wave 모델로는 테스트만 가능합니다.')
@@ -43,8 +47,11 @@ class Hangang():
             model = cmo_model.CMOModel(order_currency=self.args.order_currency, test=self.args.test, period=self.args.period)
         elif self.args.model == 'cmo_v1':
             model = cmo_model_v1.CMOModel(order_currency=self.args.order_currency, test=self.args.test, period=self.args.period)
+        elif self.args.model == 'cmo_simple':
+            model = cmo_model_simple.CMOModel(order_currency=self.args.order_currency, test=self.args.test, period=self.args.period)
         else:
             raise ValueError(f'invalid model {self.args.model}')
+
 
         return model
 
@@ -204,7 +211,21 @@ print("""
 ██║  ██║██║  ██║██║ ╚████║╚██████╔╝██║  ██║██║ ╚████║╚██████╔╝
 ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
 
+**Examples**
+1. python3 -m hangang --model cmo_v1 --balance 1000000 --scenario-name 1h-bithumb-backtest --test --order-currency LUNA --wait-seconds 0.001 --period 4 --scenario-price-type avg_price
 
+2. python3 -m hangang --model cmo --balance 1000000 --scenario-name 1m-bithumb-backtest --test --order-currency LUNA --wait-seconds 0.001 --period 3
+
+3. python3 -m hangang --model wave --balance 1000000 --scenario-name 3m-bithumb-backtest --test --debug --order-currency BTC --wait-seconds 1
+
+# 실시간 테스트
+4. python3 -m hangang --model wave --balance 1500 --order-currency EOS --wait-seconds 1 --scenario-name realtime --test
+
+5. [PROD] python3 -m hangang --model cmo --balance 1500 --order-currency EOS --wait-seconds 10 --period 4
+
+6. [PROD] python3 -m hangang --model wave --balance 1500 --order-currency EOS --wait-seconds 10
+
+7. [PROD] python3 -m hangang --model cmo --balance 3000 --order-currency DOGE --wait-seconds 1800 --period 4
 
 
 """)
@@ -218,8 +239,11 @@ parser.add_argument('--debug', action='store_true')
 parser.add_argument('--order-currency', help='주문 통화(코인)', required=True)
 parser.add_argument('--wait-seconds', help='대기 시간', default=60, type=float)
 parser.add_argument('--scenario-price-type', help='시나리오에서 사용하는 가격 타입 - end_price | avg_price | ...', default='end_price')
-parser.add_argument('--period', help='CMO 모델에서 사용하는 매개변수', default=6, type=int)
 parser.add_argument('--commission-rate', help='거래소 수수료 비율', default=0.25, type=float)
+parser.add_argument('--target-date', help='목표 날짜', default='', type=str)
+parser.add_argument('--candles', help='업비드 데이터 가져오는 갯수', default=200, type=int)
+
+parser.add_argument('--period', help='CMO 모델에서 사용하는 매개변수', default=6, type=int)
 
 args = parser.parse_args()
 

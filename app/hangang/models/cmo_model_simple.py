@@ -20,7 +20,7 @@ class CMOModel():
         self._buy_price = np.nan
         self._quantity = np.nan
 
-        self._momentum = np.nan # Momentum flag. The indicator that the market keeps going in current direction (bullish/bearish).
+        # self._momentum = np.nan # Momentum flag. The indicator that the market keeps going in current direction (bullish/bearish).
 
     def update(self, ask, bid):
         '''
@@ -53,41 +53,12 @@ class CMOModel():
             if cmo_curr > -50 and self._watchlist == 1: # Error case
                 self._watchlist = 0
 
-            if cmo_curr <= -50 and self._watchlist == 0:
-                self._watchlist = 1 # Set to watchlist
-
-            elif cmo_curr <= -50 and self._watchlist == 1:
-                if cmo_prev >= cmo_curr and np.isnan(self._momentum):
-                    # The price keeps going down. We're not gonna buying that.
-                    self._momentum = 1
-
-                elif cmo_prev < cmo_curr and self._momentum == 1:
-                    # The price has gone up just one time. But is the market really bullish?
-                    # We are not sure. So we're gonna watch one more time.
-                    self._momentum = 0
-
-                elif cmo_prev < cmo_curr and self._momentum == 0:
-                    # Okay, the price is going up. Let's buy the item!
-                    self._watchlist = 0 # Back to normal
-                    self._momentum = np.nan
-                    command.order.buy_at_rate(rate=1)
-                elif cmo_prev >= cmo_curr:
-                    pass
+            if cmo_curr > -50 and cmo_prev <= -50:
+                command.order.buy_at_rate(rate=1)
 
         elif self._tr_flag == 1: # Hold? Drop?
-            if cmo_curr >= 50 and self._watchlist == 0:
-                self._watchlist = 1
-            
-            elif cmo_curr >= 50 and self._watchlist == 1:
-                if cmo_prev <= cmo_curr and cmo_curr != 100:
-                    pass
-                elif cmo_prev > cmo_curr or cmo_curr == 100:
-                    if cmo_curr == 100:
-                        pass
-                    else:
-                        self._watchlist = 0
-                        command.order.sell_by_units(self._quantity)
-
+            if cmo_curr < 50 and cmo_prev >= 50:
+                command.order.sell_by_units(self._quantity)
         return command
 
     def event(self, event_type, event_data):

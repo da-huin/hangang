@@ -21,5 +21,6 @@ RUN pip3 install aws_glove
 RUN pip3 install numpy
 RUN pip3 install pandas
 RUN pip3 install fastparquet
+RUN pip3 install jwt
 
 WORKDIR /app
